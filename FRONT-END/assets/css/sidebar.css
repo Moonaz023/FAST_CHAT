@@ -1,0 +1,384 @@
+/* sidebar.css */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-1);
+}
+
+.sidebar {
+  width: 260px;
+  background: rgba(12, 14, 20, 0.85);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  transition: width 0.3s ease;
+}
+
+.brand-text {
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+/* NAV LIST */
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+    overflow: hidden;
+}
+
+.nav-item {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.icon {
+  font-size: 18px;
+}
+
+/* BOTTOM SECTION (Settings button) */
+.sidebar-bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;   /* stack vertically */
+  gap: 10px;                /* optional spacing */
+  padding: 15px 0 0 0;
+}
+
+.sidebar-bottom .nav-item {
+  width: 100%;
+}
+
+
+.sidebar-bottom .nav-item {
+  width: 100%;
+}
+
+/* ============================================
+      COLLAPSED SIDEBAR
+============================================ */
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+/* Hide text when collapsed */
+.sidebar.collapsed .brand-text {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  text-align: center;
+}
+
+.sidebar.collapsed .nav-item .label {
+  display: none;
+}
+
+/* remove left padding in collapsed mode */
+.sidebar.collapsed .nav-item {
+  padding: 12px 0;
+}
+
+/* Top area aligned center when collapsed */
+.sidebar.collapsed .sidebar-top {
+  justify-content: center;
+}
+
+/* Bottom button also centered */
+.sidebar.collapsed .sidebar-bottom {
+  justify-content: center;
+}
+
+/** NOTIFICATION BADGE
+/* base hidden state */
+.notif-badge {
+  display: none;              /* hidden by default */
+  align-items: center;
+  justify-content: center;
+  background: red;
+  color: white;
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 2px 6px;
+  margin-left: auto;
+  line-height: 1;
+  min-width: 20px;            /* ensures a readable oval */
+  height: 20px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+/* visible state controlled by JS */
+.notif-badge.show {
+  display: inline-flex;
+}
+
+/* GUARANTEE: if element is empty it will never show (overrides most other rules) */
+.notif-badge:empty {
+  display: none !important;
+}
+
+/*==== DROPDOWN========*/
+/* SUBLIST under Conversations */
+.conversation-sublist {
+  list-style: none;
+  padding-left: 18px; /* indentation */
+  margin-top: 5px;
+}
+
+.conversation-sublist li {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 2px 16px 2px 16px;
+  /* top | right | bottom | left */
+  /* match nav-item */
+  color: white;
+  /* match nav-item */
+  background: transparent;
+  border: 0;
+  /* remove left grey line */
+}
+
+.conversation-sublist li:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* hide */
+.hidden {
+  display: none;
+}
+
+
+.conv-unread-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 999px;
+  padding: 2px 6px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 1;
+  margin-left: auto;
+  /* <<< THIS fixes the alignment */
+}
+
+.conv-unread-badge.show {
+  display: inline-flex !important;
+}
+
+
+/*SEARCH*/
+/* =======================
+   USER SEARCH (MATCHED THEME)
+======================= */
+
+.sidebar-search-box {
+  width: 100%;
+}
+
+.sidebar-search-box input {
+  width: 100%;
+  padding: 12px 16px;
+  /* same as .nav-item */
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  /* same tone as active nav-item */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 14px;
+}
+
+.sidebar-search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-search-box input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Search result list */
+.sidebar-user-results {
+  list-style: none;
+  margin-top: 6px;
+  padding-left: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sidebar-user-results li {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+}
+
+.sidebar-user-results li:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Collapsed sidebar behavior */
+.sidebar.collapsed .sidebar-search-box input {
+  padding: 12px 0;
+  text-align: center;
+}
+
+.sidebar.collapsed .sidebar-user-results {
+  display: none !important;
+}
+
+
+/* NEW: Scrollable area for conversations & search results */
+
+
+.sidebar-scrollable {
+  flex: 1;
+  /* Takes all available space between top and bottom */
+  min-height: 0;
+  /* Crucial for flex child scrolling */
+  overflow-y: auto;
+  padding-right: 4px;
+  /* Optional: space for scrollbar */
+  margin-top: 8px;
+}
+
+/* Make sure search results also respect scroll when inside */
+#userSearchResults {
+  max-height: 300px;
+  /* Limit search dropdown height */
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+/* Optional: nice scrollbar styling */
+.sidebar-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#userSearchResults::-webkit-scrollbar {
+  width: 5px;
+}
+
+#userSearchResults::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/*===================CONVERSATION-LIST=========================================*/
+
+.conversation-sublist {
+  list-style: none;
+  margin-top: 6px;
+  padding-left: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.conversation-sublist li {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+}
+
+.conversation-sublist li:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Collapsed sidebar behavior */
+
+.sidebar.collapsed .conversation-sublist {
+  display: none !important;
+}
+
+/* Make sure search results also respect scroll when inside */
+#conversationList {
+  max-height: 300px;
+  /* Limit search dropdown height */
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+/* Optional: nice scrollbar styling */
+
+#conversationList::-webkit-scrollbar {
+  width: 5px;
+}
+
+#conversationList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/*===============Conversation with ai=====================*/
+/*========================================================*/
+#aiConversationList {
+  max-height: 300px;
+  /* Limit search dropdown height */
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  margin-top: 6px;
+}
+
+#aiConversationList::-webkit-scrollbar {
+  width: 5px;
+}
+
+#aiConversationList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}

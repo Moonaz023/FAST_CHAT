@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Home | Fast Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/sidebar.css" />
+  <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+<body class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="brand-text">Fast Chat</div>
+	  <button id="menuToggle" class="btn-ghost">☰</button>
+
+    </div>
+
+    <nav class="nav-list">
+	
+
+<div class="sidebar-search-box">
+  <input type="text" id="userSearchInput" placeholder="Search users..." />
+</div>
+
+<ul id="userSearchResults" class="sidebar-user-results hidden"></ul>
+
+<button class="nav-item" id="conversationsBtn">
+  <span class="icon">💬</span>
+  <span class="label">Conversations</span>
+  <span id="notifBadge" class="notif-badge" aria-hidden="true"></span>
+</button>
+
+
+<ul id="conversationList" class="conversation-sublist hidden"></ul>
+<button class="nav-item" id="aiConversationsBtn">
+  <span class="icon">🤖</span>
+  <span class="label">Ask AI</span>
+</button>
+<ul id="aiConversationList" class="conversation-sublist hidden"></ul>
+
+
+    </nav>
+
+<div class="sidebar-bottom">
+  <button class="nav-item">
+    <span class="icon">⚙️</span>
+    <span class="label">Settings</span>
+  </button>
+  <button class="nav-item" onclick="logout()">
+  <span class="icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 8v-5H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9v-5"/>
+      <polyline points="17 16 21 12 17 8"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  </span>
+  <span class="label">  Logout</span>
+</button>
+
+ 
+</div>
+  </aside>
+
+  <div class="main-area">
+    <header class="app-header">
+      <div class="header-left">
+  <div class="header-brand">
+    <img id="brand-logo" class="brand-logo" src="assets/img/fc-logo.png" alt="Fast Chat">
+  </div>
+</div>
+      <div class="header-right d-flex align-items-center gap-2">
+  
+  <span id="headerUser" class="header-user">—</span>
+  <a href="profile.html" title="Profile">
+    <img id="headerAvatar" class="avatar-sm" src="assets/img/avatar-placeholder.png" alt="profile"/>
+  </a>
+ 
+</div>
+
+    </header>
+
+    <section class="chat-area">
+ <!--     <div class="placeholder">
+        <h2>Welcome to Fast Chat</h2>
+        <p>Start a new chat, or pick a conversation from the left.</p>
+        <button id="newChat" class="btn btn-primary">New Chat</button>
+      </div>
+-->
+
+    <!-- Empty state -->
+    <div id="waEmpty" class="wa-empty">
+        <h2>Fast Chat</h2>
+        <p>Select a conversation to start messaging</p>
+    </div>
+
+    <!-- Chat Header -->
+    <!-- Chat Header -->
+    <div id="waHeader" class="wa-header hidden">
+      <!-- Left: User info -->
+      <div class="wa-header-info">
+        <img src="assets/img/user.png" class="wa-header-avatar">
+        <span id="waHeaderName">User</span>
+      </div>
+    
+      <!-- Right: Close button (aligned to the end) -->
+      <div class="wa-header-actions">
+        <button id="closeChatBtn" class="wa-close-btn" title="Close chat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="waMessages" class="wa-messages hidden"></div>
+
+    <!-- Input Bar -->
+    <div id="waInput" class="wa-input hidden">
+        <input id="messageInput" type="text" placeholder="Type a message">
+        <button id="sendMessageBtn">Send</button>
+    </div>
+
+    </section>
+	<footer class="app-footer">
+      <div class="container-footer">
+        <span>© <span id="fc-year"></span> Fast Chat</span>
+        <span class="footer-links">
+          <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>
+        </span>
+      </div>
+    </footer>
+
+  </div>
+  
+<script>document.getElementById('fc-year').textContent = new Date().getFullYear();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/eventsource-polyfill/1.0.0/eventsource.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script type="module" src="assets/js/auth.js"></script>
+  <script type="module" src="assets/js/sidebar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  
+  <script type="module" src="assets/js/main.js"></script>
+  
+</body>
+</html>

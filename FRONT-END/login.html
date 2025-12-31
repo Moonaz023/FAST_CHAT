@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Login | Fast Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/app.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h2>Fast Chat</h2>
+      <p class="muted">Sign in to continue</p>
+
+      <form id="loginForm" class="form">
+        <input id="loginEmail" type="email" placeholder="Email" required />
+        <input id="loginPassword" type="password" placeholder="Password" required />
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
+
+      <form id="registerForm" class="form" style="display:none">
+        <input id="regName" type="text" placeholder="Full name" required />
+        <input id="regEmail" type="email" placeholder="Email" required />
+        <input id="regPassword" type="password" placeholder="Password" required />
+        <button class="btn btn-primary" type="submit">Create account</button>
+        <button class="btn btn-ghost" id="backToLogin" type="button">Back to Login</button>
+      </form>
+
+      <div class="or">or</div>
+
+      <div class="socials">
+        <button id="googleBtn" class="btn-social btn-google" title="Google">G</button>
+        <button id="githubBtn" class="btn-social btn-github" title="GitHub">GH</button>
+        <button id="linkedinBtn" class="btn-social btn-linkedin" title="LinkedIn">in</button>
+      </div>
+
+      <div class="footer-links">
+        <a id="toggleRegister" href="#">New here? Create account</a>
+      </div>
+
+      <div id="result" class="alert" style="display:none"></div>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/auth.js"></script>
+</body>
+</html>

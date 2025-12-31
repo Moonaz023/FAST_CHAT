@@ -1,0 +1,3 @@
+npm init -y
+npm install --save-dev live-server
+npx live-server --port=3000
