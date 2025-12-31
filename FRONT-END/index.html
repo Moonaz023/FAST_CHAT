@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>Fast Chat — Landing</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/index.css" />
 </head>
+
 <body class="landing">
   <header class="topbar">
     <div class="brand">Fast Chat</div>
@@ -16,8 +18,8 @@
 
   <main class="landing-main">
     <section class="hero">
-      <h1>Fast Chat</h1>
-      <p>Lightweight, fast messaging with AI-like interface.</p>
+      <img src="assets/img/fast-chat.png" alt="Fast Chat Logo" class="hero-logo">
+      <p>Lightweight, fast messaging platform featuring an integrated 'Ask Gemini' AI assistant.</p>
       <div class="actions">
         <a class="btn btn-primary" href="login.html">Get Started — Sign In</a>
       </div>
@@ -26,23 +28,24 @@
     <section class="features">
       <div class="feature">
         <h3>Conversations</h3>
-        <p>Simple, clean UI to hold your chats.</p>
+        <p>Simple, clean UI for instant messaging powered by WebSocket technology.</p>
       </div>
       <div class="feature">
         <h3>Secure</h3>
         <p>OAuth2 ready + JWT token storage (browser only).</p>
       </div>
       <div class="feature">
-        <h3>Profile</h3>
-        <p>One-click access to your profile and logout.</p>
+        <h3>Ask AI</h3>
+        <p>Integration with Gemini AI for intelligent chat responses.</p>
       </div>
     </section>
   </main>
 
-  <footer class="footer">© <span id="year"></span> Fast Chat</footer>
+  <footer class="footer">© 2025</span> Fast Chat</footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
+
 </html>
