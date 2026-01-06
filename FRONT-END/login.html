@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <title>Login | Fast Chat</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/app.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body class="auth-page">
   <div class="auth-wrapper">
@@ -13,7 +14,7 @@
       <div class="header-brand">
         <img id="brand-logo" class="brand-logo" src="assets/img/fc-logo.png" alt="Fast Chat">
       </div>
-      <p class="muted">Sign in to continue</p>
+      
 
       <form id="loginForm" class="form">
         <input id="loginEmail" type="email" placeholder="Email" required />
@@ -32,9 +33,17 @@
       <div class="or">or</div>
 
       <div class="socials">
-        <button id="googleBtn" class="btn-social btn-google" title="Google">G</button>
-        <button id="githubBtn" class="btn-social btn-github" title="GitHub">GH</button>
-        <button id="linkedinBtn" class="btn-social btn-linkedin" title="LinkedIn">in</button>
+        <button id="googleBtn" class="btn-social btn-google" title="Google">
+          <i class="fa-brands fa-google"></i>
+        </button>
+      
+        <button id="githubBtn" class="btn-social btn-github" title="GitHub">
+          <i class="fa-brands fa-github"></i>
+        </button>
+      
+        <button id="linkedinBtn" class="btn-social btn-linkedin" title="LinkedIn">
+          <i class="fa-brands fa-linkedin-in"></i>
+        </button>
       </div>
 
       <div class="footer-links">

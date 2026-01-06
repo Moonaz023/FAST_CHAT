@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const headerAvatar = document.getElementById("headerAvatar");
   const sidebarAvatar = document.getElementById("sidebarAvatar");
   if (headerUser) headerUser.textContent = user.username || user.name || user.email || 'User';
-  if (headerAvatar && (user.picture || user.pictureUrl || user.avatar)) {
-    headerAvatar.src = user.picture || user.pictureUrl || user.avatar;
+  if (headerAvatar && (user.profilePic || user.pictureUrl || user.avatar)) {
+    headerAvatar.src = user.profilePic || user.pictureUrl || user.avatar;
   }
   if (sidebarAvatar && (user.picture || user.pictureUrl || user.avatar)) {
     sidebarAvatar.src = user.picture || user.pictureUrl || user.avatar;

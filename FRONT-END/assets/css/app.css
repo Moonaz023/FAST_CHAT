@@ -18,6 +18,14 @@
 .header-user{color:var(--white);margin-right:12px}
 .placeholder{text-align:center;color:#fff;max-width:720px}
 .btn-danger{background:#dc3545;color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+.btn-back {
+    background: #3c3ed4;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer
+}
 .btn-primary{background:#fff;color:var(--accent);padding:10px 16px;border-radius:10px;border:0}
 /* Ensure main-area is column so footer stays at bottom of main content */
 .main-area {

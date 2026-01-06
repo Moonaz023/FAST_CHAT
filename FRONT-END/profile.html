@@ -1,45 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>Profile | Fast Chat</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/app.css" />
+  <link rel="stylesheet" href="assets/css/profile.css" />
+
 </head>
-<body class="profile-page">
-  <header class="topbar">
-    <div class="brand">Fast Chat</div>
-    <nav>
-      <button class="btn btn-ghost" onclick="window.location.href='home.html'">Back</button>
-      <button class="btn btn-danger" onclick="logout()">Logout</button>
-    </nav>
+
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-brand">
+        <img id="brand-logo" class="brand-logo" src="assets/img/fc-logo.png" alt="Fast Chat">
+      </div>
+    </div>
+    <div class="header-right">
+      <nav>
+       <!-- <button class="btn btn-back" onclick="window.location.href='home.html'">Back</button>
+        <button class="btn btn-danger" onclick="logout()">Logout</button>-->
+      </nav>
+    </div>
   </header>
 
-  <main class="profile-main">
-    <section class="profile-card">
-      <img id="profileAvatar" src="assets/img/avatar-placeholder.png" class="avatar-lg" alt="avatar"/>
-      <h2 id="profileName">Loading...</h2>
-      <p id="profileEmail" class="muted">—</p>
+  <section class="chat-area">
+    <div class="profile-card">
+      <div class="profile-avatar">
+        <img src="assets/img/user.png" alt="User Avatar">
+      </div>
 
-      <div class="profile-details">
-        <div class="row">
-          <div class="label">Provider</div>
-          <div id="detailProvider">—</div>
+      <div class="profile-info">
+        <h3 class="profile-name">Name</h3>
+
+        <div class="profile-meta">
+          
         </div>
-        <div class="row">
-          <div class="label">User ID</div>
-          <div id="detailId">—</div>
-        </div>
-        <div class="row">
-          <div class="label">Status</div>
-          <div id="detailStatus">Active</div>
+
+        <div class="profile-actions">
+          <button class="btn btn-primary" onclick="window.location.href='home.html'">Back</button>
+          <button class="btn btn-danger" onclick="logout()">Logout</button>
+          
         </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <script src="assets/js/profile.js"></script>
-  <script src="assets/js/auth.js"></script>
+  <footer class="app-footer">
+    <div class="container-footer">
+      <span>© <span id="fc-year"></span> Fast Chat</span>
+      <span class="footer-links">
+        <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>
+      </span>
+    </div>
+  </footer>
+
+  <script type="module" src="assets/js/auth.js"></script>
+  <script type="module" src="assets/js/profile.js"></script>
+
 </body>
+
 </html>

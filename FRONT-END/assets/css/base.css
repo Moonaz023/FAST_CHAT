@@ -27,7 +27,11 @@ button{font-family:inherit}
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:rgba(0,0,0,0.08)}
 .brand{font-weight:700;font-size:1.2rem}
 .btn{padding:8px 14px;border-radius:8px;text-decoration:none;border:0;background:rgba(255,255,255,0.12);color:var(--white);cursor:pointer}
-.btn-primary{background:var(--white);color:var(--accent);font-weight:600}
+.btn-primary {
+  background-color: #4ea0f1;
+  color: #ffffff;
+  font-weight: 600;
+}
 .muted{color:var(--white);opacity:0.9}
 .footer{text-align:center;padding:24px;color:rgba(255,255,255,0.85)}
 
@@ -38,7 +42,7 @@ button{font-family:inherit}
 .auth-card h2{margin:0 0 6px;color:var(--accent)}
 .form{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .form input{padding:10px;border-radius:8px;border:1px solid #e6e9ee}
-.btn-ghost{background:transparent;border:1px solid #e6e9ee;padding:8px 12px;border-radius:8px}
+.btn-ghost{background:transparent;color: #333232;border:1px solid #e6e9ee;padding:8px 12px;border-radius:8px}
 
 /* alerts */
 .alert{margin-top:10px;padding:10px;border-radius:8px;background:#fdecea;color:#611a15}
