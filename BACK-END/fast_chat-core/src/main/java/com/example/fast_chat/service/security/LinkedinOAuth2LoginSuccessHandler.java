@@ -63,7 +63,8 @@ public class LinkedinOAuth2LoginSuccessHandler implements AuthenticationSuccessH
                 "user", Map.of(
                         "id", user.getId(),
                         "email", user.getEmail(),
-                        "name", user.getName())
+                        "name", user.getName(),
+                        "profilePic",user.getPicture())
         );
 
         String jsonPayload = mapper.writeValueAsString(payload);

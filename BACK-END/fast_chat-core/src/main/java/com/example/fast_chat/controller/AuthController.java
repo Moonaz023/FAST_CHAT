@@ -98,6 +98,7 @@ public class AuthController {
     response.put("username", user.getName());
     response.put("id", user.getId());
     response.put("status", "success");
+    response.put("profilePic",user.getPicture());
 
     //  Return as JSON (no cookie)
     return ResponseEntity.ok(response);
