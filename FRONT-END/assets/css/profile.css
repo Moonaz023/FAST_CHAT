@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg-1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Center the profile card */
+.chat-area {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Changed from flex-start to center */
+}
+
+/* Profile Card */
+.profile-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    gap: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Avatar */
+.profile-avatar img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent);
+}
+
+/* Info */
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.profile-role {
+    margin: 4px 0 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* Meta */
+.profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    color: var(--text-dark);
+}
+
+/* Actions */
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.profile-actions .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #4ea0f1;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: #3d8fd8;
+}
+
+.btn-secondary {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .profile-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        display: flex;
+        justify-content: center;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+}
