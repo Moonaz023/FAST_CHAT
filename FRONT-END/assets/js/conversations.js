@@ -52,12 +52,21 @@ export async function loadConversations(append = false) {
     } finally {
         isLoading = false;
     }
+    if (window.onlineUsers) {
+    updateOnlineStatus(window.onlineUsers);
+}
+
 }
 
 function createConversationItem(c, list) {
     const li = document.createElement("li");
     li.dataset.convId = c.conversationId;
-    li.className = "px-6 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-4 min-w-0";
+    li.dataset.username = c.email; // ✅ MUST match backend principal
+    li.className = "px-6 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-3 min-w-0";
+
+    // Online dot
+    const onlineDot = document.createElement("span");
+    onlineDot.className = "online-dot";
 
     const name = document.createElement("span");
     name.textContent = c.useName;
@@ -65,23 +74,29 @@ function createConversationItem(c, list) {
 
     const badge = document.createElement("span");
     badge.className = "conv-unread-badge";
+
     const count = unreadCounts[c.conversationId] || 0;
     if (count > 0) {
         badge.textContent = count > 99 ? "99+" : count;
         badge.classList.add("show");
     }
 
-    li.append(name, badge);
+    li.append(onlineDot, name, badge);
+
     li.onclick = () => {
         clearConversationUnread(c.conversationId);
         badge.classList.remove("show");
-        badge.textContent = "";
-        
-        import('./chat.js').then(chat => chat.openConversation(c.useName, c.conversationId));
+        badge.textContent = ""; // ✅ FIXED
+
+        import('./chat.js').then(chat =>
+            chat.openConversation(c.useName, c.conversationId)
+        );
     };
 
     list.appendChild(li);
 }
+
+
 
 function handleLoadMore(length, totalPages) {
     if (length === PAGE_SIZE && (!totalPages || currentPage + 1 < totalPages)) {
@@ -98,6 +113,26 @@ function handleLoadMore(length, totalPages) {
         hasMore = false;
     }
 }
+
+export function updateOnlineStatus(onlineUsers) {
+    const onlineSet = new Set(onlineUsers);
+
+    document.querySelectorAll("#conversationList li").forEach(li => {
+        const username = li.dataset.username;
+        const dot = li.querySelector(".online-dot");
+
+        if (!dot || !username) return;
+
+        /*console.log("Checking:", {
+            username,
+            isOnline: onlineSet.has(username)
+        });*/
+
+        dot.classList.toggle("online", onlineSet.has(username));
+    });
+}
+
+
 
 export function reorderConversationToTop(conversationId) {
     const list = document.getElementById("conversationList");

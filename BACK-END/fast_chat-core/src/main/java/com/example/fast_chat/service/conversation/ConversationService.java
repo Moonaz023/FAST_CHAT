@@ -97,6 +97,7 @@ public class ConversationService {
 
     if (!others.isEmpty()) {
       dto.setUseName(others.getFirst().getUser().getName());
+      dto.setEmail(others.getFirst().getUser().getEmail());
     }
 
     return dto;

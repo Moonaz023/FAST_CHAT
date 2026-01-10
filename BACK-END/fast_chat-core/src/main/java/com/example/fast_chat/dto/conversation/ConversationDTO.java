@@ -14,6 +14,7 @@ public class ConversationDTO {
 
   private Long conversationId;
   private String useName;
+  private String email;
   private LocalDateTime updatedAt;
   private int unreadCount;
 

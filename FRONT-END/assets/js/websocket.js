@@ -10,13 +10,38 @@ export function connectWS() {
     stompClient = Stomp.over(socket);
 
     stompClient.connect(
-        { Authorization: `Bearer ${token}` },
-        () => {
-            console.log("WebSocket connected");
-            stompClient.subscribe("/user/queue/messages", handleIncomingMessage);
-        },
-        (err) => console.error("WS Error:", err)
-    );
+    { Authorization: `Bearer ${token}` },
+    () => {
+        console.log("WebSocket connected");
+
+        stompClient.subscribe("/user/queue/messages", handleIncomingMessage);
+
+        stompClient.subscribe("/user/queue/online-users", msg => {
+            const users = JSON.parse(msg.body);
+            //console.log("📦 Snapshot users:", users);
+
+            window.onlineUsers = users;
+
+            import('./conversations.js').then(mod =>
+                mod.updateOnlineStatus(users)
+            );
+        });
+
+        stompClient.subscribe("/topic/online-users", msg => {
+            const users = JSON.parse(msg.body);
+            //console.log("🔁 Live update users:", users);
+
+            window.onlineUsers = users;
+
+            import('./conversations.js').then(mod =>
+                mod.updateOnlineStatus(users)
+            );
+        });
+    },
+    err => console.error("WS Error:", err)
+);
+
+
 }
 
 function handleIncomingMessage(message) {
@@ -42,5 +67,23 @@ function handleIncomingMessage(message) {
         import('./conversations.js').then(c => c.reorderConversationToTop(msg.conversationId));
     }
 }
+
+function handleOnlineUsers(message) {
+    const onlineUsers = JSON.parse(message.body);
+
+    //console.log("Online users:", onlineUsers);
+
+    // Make it globally accessible for UI files
+    window.onlineUsers = onlineUsers;
+
+    // Optional: notify UI modules
+    import('./conversations.js').then(mod => {
+        if (mod.updateOnlineStatus) {
+            mod.updateOnlineStatus(onlineUsers);
+        }
+    });
+}
+
+
 
 export { stompClient };

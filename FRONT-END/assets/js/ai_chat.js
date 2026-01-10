@@ -1,14 +1,65 @@
-// ai_chat.js - Updated with conversation creation handling
+// ai_chat.js — unified & stream-safe markdown rendering
+
 import { BACKEND_URL } from './config.js';
 import { stompClient } from './websocket.js';
 
 let currentEventSource = null;
 
-export async function openConversation(name, id, targetUserId = null) {
-    if (currentEventSource) {
-        currentEventSource.close();
-        currentEventSource = null;
+/* ─────────────────────────────────────────────────────────────
+   MARKDOWN RENDERING (SINGLE SOURCE OF TRUTH)
+───────────────────────────────────────────────────────────── */
+
+const md = window.markdownit({
+    html: true,
+    breaks: true,
+    linkify: true
+});
+
+function renderMarkdown(raw) {
+    if (!raw) return "";
+
+    let rendered = md.render(raw);
+
+    rendered = rendered
+        .replace(/<\/strong>\s*\*(\s|$)/g, '</strong>$1')
+        .replace(/\*\s*$/gm, '')
+        .replace(/^\*\s/gm, '• ');
+
+    return DOMPurify.sanitize(rendered);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   STREAM HELPERS (CRITICAL FIX)
+───────────────────────────────────────────────────────────── */
+
+function normalizeStreamChunk(chunk) {
+    if (!chunk) return "";
+
+    if (chunk.includes("\n")) return chunk;
+
+    if (!chunk.startsWith(" ") && !chunk.startsWith("\n")) {
+        return " " + chunk;
     }
+
+    return chunk;
+}
+
+function needsParagraphBreak(text) {
+    return (
+        text.endsWith(".") ||
+        text.endsWith("!") ||
+        text.endsWith("?") ||
+        text.endsWith(":")
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   OPEN / CLOSE CONVERSATION
+───────────────────────────────────────────────────────────── */
+
+export async function openConversation(name, id, targetUserId = null) {
+    currentEventSource?.close();
+    currentEventSource = null;
 
     window.activeConversationId = id;
     window.targetUserId = targetUserId;
@@ -24,27 +75,24 @@ export async function openConversation(name, id, targetUserId = null) {
     document.getElementById("waInput").classList.remove("hidden");
     document.getElementById("waHeaderName").textContent = name;
     document.getElementById("waMessages").innerHTML = "";
+
     window.setSendFunction(sendMessage);
 
     if (id) {
         await loadMessages(id);
 
         if (stompClient?.connected) {
-            stompClient.send("/app/chat.read", {}, JSON.stringify({ 
-                conversationId: id, 
-                messageId: null 
+            stompClient.send("/app/chat.read", {}, JSON.stringify({
+                conversationId: id,
+                messageId: null
             }));
         }
-    } else {
-        console.log("AI_Chat : Opening a new chat — no conversation yet");
     }
 }
 
 export function closeConversation() {
-    if (currentEventSource) {
-        currentEventSource.close();
-        currentEventSource = null;
-    }
+    currentEventSource?.close();
+    currentEventSource = null;
 
     window.activeConversationId = null;
     document.getElementById("waEmpty").classList.remove("hidden");
@@ -55,6 +103,10 @@ export function closeConversation() {
     document.getElementById("messageInput").value = "";
     window.clearSendFunction();
 }
+
+/* ─────────────────────────────────────────────────────────────
+   SEND MESSAGE + STREAM AI RESPONSE
+───────────────────────────────────────────────────────────── */
 
 export async function sendMessage() {
     if (!stompClient?.connected) return alert("Not connected");
@@ -67,284 +119,124 @@ export async function sendMessage() {
     input.value = "";
     input.disabled = true;
 
-    // Streaming for AI conversations (both new and existing)
-    if (currentEventSource !== null) {
-        currentEventSource.close();
-        currentEventSource = null;
-    }
+    currentEventSource?.close();
+    currentEventSource = null;
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-        alert("Not authenticated");
         input.disabled = false;
-        return;
+        return alert("Not authenticated");
     }
 
     const url = `${BACKEND_URL}/api/ai/stream-story`;
-        
-        let aiBubble = null;
-        let accumulatedText = "";
-        let isError = false;
-        let errorMessage = "";
-        let newConversationId = null;
-        let conversationName = null;
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'text/event-stream'
-            },
-            body: JSON.stringify({ 
-                prompt: text,
-                conversationId: window.activeConversationId || null
-            })
+    let aiBubble = null;
+    let accumulatedMarkdown = "";
+    let isError = false;
+    let newConversationId = null;
+    let conversationName = null;
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "text/event-stream"
+        },
+        body: JSON.stringify({
+            prompt: text,
+            conversationId: window.activeConversationId || null
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-            }
-            
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = "";
-            
-            function readStream() {
-                reader.read().then(({ done, value }) => {
-                    if (done) {
-                        console.log("✅ Stream done. Total accumulated:", accumulatedText.length, "chars");
-                        input.disabled = false;
-                        
-                        // After stream completes, update the active conversation and UI
-                        if (newConversationId && !isError) {
-                            window.activeConversationId = newConversationId;
-                            
-                            if (conversationName) {
-                                document.getElementById("waHeaderName").textContent = conversationName;
-                            }
-                            
-                            // Add the new conversation to the sidebar immediately
-                            addConversationToSidebar(newConversationId, conversationName);
-                            
-                            console.log("✅ New conversation created:", newConversationId);
-                        } else if (window.activeConversationId && !isError) {
-                            // ✅ For existing conversations, move to top
-                            moveConversationToTop(window.activeConversationId);
-                        }
-                        
-                        if (isError) {
-                            const errorDiv = document.createElement("div");
-                            errorDiv.style.color = "#d32f2f";
-                            errorDiv.style.background = "#ffebee";
-                            errorDiv.style.padding = "15px";
-                            errorDiv.style.borderRadius = "8px";
-                            errorDiv.style.marginTop = "10px";
-                            errorDiv.style.border = "1px solid #ef5350";
-                            errorDiv.textContent = errorMessage;
-                            document.getElementById("waMessages").appendChild(errorDiv);
-                            
-                            if (aiBubble && !accumulatedText.trim()) {
-                                aiBubble.remove();
-                            }
-                        } else if (aiBubble && accumulatedText.trim()) {
-                            const completeMsg = document.createElement("div");
-                            completeMsg.style.color = "#4caf50";
-                            completeMsg.style.marginTop = "10px";
-                            completeMsg.style.fontSize = "0.9em";
-                            completeMsg.textContent = "✓ Response complete";
-                            document.getElementById("waMessages").appendChild(completeMsg);
-                        }
-                        return;
-                    }
-                    
-                    const chunk = decoder.decode(value, { stream: true });
-                    console.log("📦 Raw chunk received:", chunk.substring(0, 100));
-                    buffer += chunk;
-                    
-                    const messages = buffer.split('\n\n');
-                    console.log("📨 Messages in buffer:", messages.length);
-                    
-                    buffer = messages.pop() || "";
-                    
-                    messages.forEach(message => {
-                        if (!message.trim()) return;
-                        
-                        const lines = message.split('\n');
-                        lines.forEach(line => {
-                            const trimmedLine = line.trim();
-                            if (!trimmedLine) return;
-                            
-                            let data;
-                            if (trimmedLine.startsWith('data:')) {
-                                data = trimmedLine.substring(5).trim();
-                            } else {
-                                data = trimmedLine;
-                            }
-                            
-                            if (!data) return;
-                            
-                            console.log("📝 Data extracted:", data.substring(0, 50));
-                            
-                            // Handle CONVERSATION_ID
-                            if (data.startsWith('[CONVERSATION_ID:')) {
-                                const match = data.match(/\[CONVERSATION_ID:([^\]]+)\]/);
-                                if (match) {
-                                    newConversationId = match[1];
-                                    console.log("🆔 Received conversation ID:", newConversationId);
-                                }
-                                return;
-                            }
-                            
-                            // Handle CONVERSATION_NAME
-                            if (data.startsWith('[CONVERSATION_NAME:')) {
-                                const match = data.match(/\[CONVERSATION_NAME:([^\]]+)\]/);
-                                if (match) {
-                                    conversationName = match[1];
-                                    console.log("📝 Received conversation name:", conversationName);
-                                }
-                                return;
-                            }
-                            
-                            if (data === '[ERROR_START]') {
-                                isError = true;
-                                errorMessage = "";
-                                return;
-                            }
-                            
-                            if (data === '[ERROR_END]') {
-                                return;
-                            }
-                            
-                            if (isError) {
-                                errorMessage += data + ' ';
-                                return;
-                            }
-                            
-                            accumulatedText += data;
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Stream failed");
 
-                            if (!aiBubble) {
-                                console.log("🎨 Creating AI bubble");
-                                aiBubble = document.createElement("div");
-                                aiBubble.className = "wa-bubble wa-them";
-                                document.getElementById("waMessages").appendChild(aiBubble);
-                            }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
 
-                            aiBubble.textContent = accumulatedText;
-                            const messagesBox = document.getElementById("waMessages");
-                            messagesBox.scrollTop = messagesBox.scrollHeight;
-                        });
-                    });
-                    
-                    readStream();
-                })
-                .catch(error => {
-                    console.error('Stream reading error:', error);
+        function read() {
+            reader.read().then(({ done, value }) => {
+                if (done) {
                     input.disabled = false;
-                    
-                    const errorDiv = document.createElement("div");
-                    errorDiv.style.color = "#d32f2f";
-                    errorDiv.style.background = "#ffebee";
-                    errorDiv.style.padding = "15px";
-                    errorDiv.style.borderRadius = "8px";
-                    errorDiv.style.marginTop = "10px";
-                    errorDiv.style.border = "1px solid #ef5350";
-                    errorDiv.textContent = "⚠️ Connection lost. Please try again.";
-                    document.getElementById("waMessages").appendChild(errorDiv);
-                    
-                    if (aiBubble && !accumulatedText.trim()) {
-                        aiBubble.remove();
+
+                    if (newConversationId) {
+                        window.activeConversationId = newConversationId;
+                        if (conversationName) {
+                            document.getElementById("waHeaderName").textContent = conversationName;
+                        }
+                        addConversationToSidebar(newConversationId, conversationName);
                     }
+                    return;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                const parts = buffer.split("\n\n");
+                buffer = parts.pop() || "";
+
+                parts.forEach(block => {
+                    block.split("\n").forEach(line => {
+                        let data = line.trim();
+                        if (!data) return;
+                        if (data.startsWith("data:")) data = data.slice(5).trim();
+
+                        if (data.startsWith("[CONVERSATION_ID:")) {
+                            newConversationId = data.match(/\[CONVERSATION_ID:(.+?)\]/)?.[1];
+                            return;
+                        }
+
+                        if (data.startsWith("[CONVERSATION_NAME:")) {
+                            conversationName = data.match(/\[CONVERSATION_NAME:(.+?)\]/)?.[1];
+                            return;
+                        }
+
+                        if (data === "[ERROR_START]") {
+                            isError = true;
+                            return;
+                        }
+
+                        if (data === "[ERROR_END]") return;
+                        if (isError) return;
+
+                        // ───── STREAM FIX ─────
+                        const normalized = normalizeStreamChunk(data);
+                        accumulatedMarkdown += normalized;
+
+                        if (needsParagraphBreak(accumulatedMarkdown.trim())) {
+                            accumulatedMarkdown += "\n\n";
+                        }
+
+                        accumulatedMarkdown = accumulatedMarkdown
+                            .replace(/###(?=\S)/g, "### ")
+                            .replace(/##(?=\S)/g, "## ")
+                            .replace(/#(?=\S)/g, "# ");
+
+                        if (!aiBubble) {
+                            aiBubble = document.createElement("div");
+                            aiBubble.className = "wa-bubble wa-them markdown-body";
+                            document.getElementById("waMessages").appendChild(aiBubble);
+                        }
+
+                        aiBubble.innerHTML = renderMarkdown(accumulatedMarkdown);
+                        const box = document.getElementById("waMessages");
+                        box.scrollTop = box.scrollHeight;
+                    });
                 });
-            }
-            
-            readStream();
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            input.disabled = false;
-            
-            const errorDiv = document.createElement("div");
-            errorDiv.style.color = "#d32f2f";
-            errorDiv.style.background = "#ffebee";
-            errorDiv.style.padding = "15px";
-            errorDiv.style.borderRadius = "8px";
-            errorDiv.style.marginTop = "10px";
-            errorDiv.style.border = "1px solid #ef5350";
-            errorDiv.textContent = error.message.includes('401') || error.message.includes('403') 
-                ? "🔒 Authentication failed. Please login again." 
-                : "⚠️ Failed to connect to AI service. Please try again later.";
-            document.getElementById("waMessages").appendChild(errorDiv);
-        });
-}
 
-// Function to add conversation to sidebar instantly
-function addConversationToSidebar(conversationId, conversationName) {
-    const list = document.getElementById("aiConversationList");
-    if (!list) return;
-
-    // Check if conversation already exists in the list
-    const existingItem = list.querySelector(`[data-conv-id="${conversationId}"]`);
-    if (existingItem) {
-        // Move existing item to top (after "New Chat")
-        const newChatItem = list.querySelector('li'); // First item is "New Chat"
-        if (newChatItem && newChatItem.nextSibling) {
-            list.insertBefore(existingItem, newChatItem.nextSibling);
+                read();
+            });
         }
-        return;
-    }
-
-    // Create new conversation item
-    const li = document.createElement("li");
-    li.dataset.convId = conversationId;
-    li.className = "px-6 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-4 min-w-0";
-
-    const name = document.createElement("span");
-    name.textContent = conversationName || "Gemini AI";
-    name.className = "flex-1 text-white/90 font-medium truncate";
-
-    const badge = document.createElement("span");
-    badge.className = "conv-unread-badge";
-
-    li.append(name, badge);
-    li.onclick = () => {
-        badge.classList.remove("show");
-        badge.textContent = "";
-        openConversation(conversationName, conversationId);
-    };
-
-    // Insert after "New Chat" item (first item in the list)
-    const newChatItem = list.querySelector('li');
-    if (newChatItem && newChatItem.nextSibling) {
-        list.insertBefore(li, newChatItem.nextSibling);
-    } else {
-        list.appendChild(li);
-    }
-
-    console.log("✅ Added conversation to sidebar:", conversationId);
+        read();
+    })
+    .catch(() => {
+        input.disabled = false;
+        alert("AI stream failed");
+    });
 }
 
-// Move existing conversation to top
-function moveConversationToTop(conversationId) {
-    const list = document.getElementById("aiConversationList");
-    if (!list) return;
-
-    // Find the conversation item
-    const conversationItem = list.querySelector(`[data-conv-id="${conversationId}"]`);
-    if (!conversationItem) {
-        console.warn("⚠️ Conversation not found in sidebar:", conversationId);
-        return;
-    }
-
-    // Find "New Chat" button (first item)
-    const newChatItem = list.querySelector('li');
-    
-    // Move conversation right after "New Chat"
-    if (newChatItem && newChatItem.nextSibling !== conversationItem) {
-        list.insertBefore(conversationItem, newChatItem.nextSibling);
-        console.log("📌 Moved conversation to top:", conversationId);
-    }
-}
+/* ─────────────────────────────────────────────────────────────
+   MESSAGE HELPERS
+───────────────────────────────────────────────────────────── */
 
 export function addMessage(text, who) {
     const box = document.getElementById("waMessages");
@@ -355,22 +247,19 @@ export function addMessage(text, who) {
     box.scrollTop = box.scrollHeight;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   LOAD MESSAGES FROM DB (FIXED)
+───────────────────────────────────────────────────────────── */
+
 let messagePage = 0;
 const MESSAGE_PAGE_SIZE = 30;
 let hasMoreMessages = true;
 let isLoadingMessages = false;
 
 export async function loadMessages(conversationId, append = false) {
-    if (isLoadingMessages || (!append && !hasMoreMessages)) return;
-
-    if (!append) {
-        messagePage = 0;
-        hasMoreMessages = true;
-        document.getElementById("waMessages").innerHTML = "";
-        document.getElementById("loadOlderBtn")?.remove();
-    }
-
+    if (isLoadingMessages) return;
     isLoadingMessages = true;
+
     const token = localStorage.getItem("authToken");
     const box = document.getElementById("waMessages");
 
@@ -379,55 +268,41 @@ export async function loadMessages(conversationId, append = false) {
             `${BACKEND_URL}/api/conversation/ai/${conversationId}/messages?page=${messagePage}&size=${MESSAGE_PAGE_SIZE}`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
+
         const page = await res.json();
         const messages = page.content || [];
 
-        if (messages.length === 0) {
-            hasMoreMessages = false;
-            document.getElementById("loadOlderBtn")?.remove();
-            isLoadingMessages = false;
-            return;
-        }
-
-        const myId = JSON.parse(localStorage.getItem("user") || "{}").id;
         const fragment = document.createDocumentFragment();
 
         messages.reverse().forEach(m => {
+            const isUser = m.senderName === "user";
             const div = document.createElement("div");
-            div.className = `wa-bubble wa-${m.senderName === "user" ? "you" : "them"}`;
-            div.textContent = m.content;
+            div.className = `wa-bubble wa-${isUser ? "you" : "them"}`;
+
+            if (isUser) {
+                div.textContent = m.content;
+            } else {
+                div.classList.add("markdown-body");
+                div.innerHTML = renderMarkdown(m.content);
+            }
+
             fragment.appendChild(div);
         });
 
-        if (append) {
-            box.prepend(fragment);
-        } else {
-            box.appendChild(fragment);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        const totalLoaded = (messagePage + 1) * MESSAGE_PAGE_SIZE;
-        hasMoreMessages = page.totalElements > totalLoaded;
+        append ? box.prepend(fragment) : box.appendChild(fragment);
+        box.scrollTop = box.scrollHeight;
 
         messagePage++;
+        hasMoreMessages = page.totalElements > messagePage * MESSAGE_PAGE_SIZE;
 
-        document.getElementById("loadOlderBtn")?.remove();
-
-        if (hasMoreMessages) {
-            const btn = document.createElement("div");
-            btn.id = "loadOlderBtn";
-            btn.textContent = "↑ Load older messages";
-            btn.className = "text-center py-3 text-white/50 text-sm cursor-pointer hover:text-white/80";
-            btn.onclick = () => loadMessages(conversationId, true);
-            box.prepend(btn);
-        }
-
-    } catch (err) {
-        console.error("Failed to load messages", err);
+    } catch (e) {
+        console.error("Failed to load messages", e);
     } finally {
         isLoadingMessages = false;
     }
 }
+
+/* ───────────────────────────────────────────────────────────── */
 
 export function playNotificationSound() {
     new Audio("/sounds/notification.mp3").play().catch(() => {});
