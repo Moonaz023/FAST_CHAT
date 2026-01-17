@@ -81,12 +81,12 @@ export async function openConversation(name, id, targetUserId = null) {
     if (id) {
         await loadMessages(id);
 
-        if (stompClient?.connected) {
+        /*if (stompClient?.connected) {
             stompClient.send("/app/chat.read", {}, JSON.stringify({
                 conversationId: id,
                 messageId: null
             }));
-        }
+        }*/
     }
 }
 
