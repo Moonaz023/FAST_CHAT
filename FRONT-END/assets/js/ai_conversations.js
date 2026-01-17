@@ -2,7 +2,7 @@ let currentPage = 0;
 const PAGE_SIZE = 10;
 let hasMore = true;
 let isLoading = false;
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
 export async function loadAiConversationList(append = false) {
     if (isLoading) return;
 
@@ -15,13 +15,12 @@ export async function loadAiConversationList(append = false) {
 
     isLoading = true;
 
-    const token = localStorage.getItem("authToken");
+
     const list = document.getElementById("aiConversationList");
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/conversation/getAiConversionList?page=${currentPage}&size=${PAGE_SIZE}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const res = await apiFetch(
+            `/api/conversation/getAiConversionList?page=${currentPage}&size=${PAGE_SIZE}`
         );
 
         const data = await res.json();
@@ -113,7 +112,7 @@ function createConversationItem(c, list) {
     li.onclick = () => {
         badge.classList.remove("show");
         badge.textContent = "";
-        
+
         import('./ai_chat.js').then(chat => chat.openConversation(c.useName, c.conversationId));
     };
 

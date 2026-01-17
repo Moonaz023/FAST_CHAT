@@ -1,6 +1,6 @@
 // ai_chat.js — unified & stream-safe markdown rendering
 
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
 import { stompClient } from './websocket.js';
 
 let currentEventSource = null;
@@ -128,7 +128,7 @@ export async function sendMessage() {
         return alert("Not authenticated");
     }
 
-    const url = `${BACKEND_URL}/api/ai/stream-story`;
+
 
     let aiBubble = null;
     let accumulatedMarkdown = "";
@@ -136,10 +136,9 @@ export async function sendMessage() {
     let newConversationId = null;
     let conversationName = null;
 
-    fetch(url, {
+    apiFetch(`/api/ai/stream-story`, {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
             Accept: "text/event-stream"
         },
@@ -148,90 +147,90 @@ export async function sendMessage() {
             conversationId: window.activeConversationId || null
         })
     })
-    .then(res => {
-        if (!res.ok) throw new Error("Stream failed");
+        .then(res => {
+            if (!res.ok) throw new Error("Stream failed");
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
 
-        function read() {
-            reader.read().then(({ done, value }) => {
-                if (done) {
-                    input.disabled = false;
+            function read() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        input.disabled = false;
 
-                    if (newConversationId) {
-                        window.activeConversationId = newConversationId;
-                        if (conversationName) {
-                            document.getElementById("waHeaderName").textContent = conversationName;
+                        if (newConversationId) {
+                            window.activeConversationId = newConversationId;
+                            if (conversationName) {
+                                document.getElementById("waHeaderName").textContent = conversationName;
+                            }
+                            addConversationToSidebar(newConversationId, conversationName);
                         }
-                        addConversationToSidebar(newConversationId, conversationName);
+                        return;
                     }
-                    return;
-                }
 
-                buffer += decoder.decode(value, { stream: true });
-                const parts = buffer.split("\n\n");
-                buffer = parts.pop() || "";
+                    buffer += decoder.decode(value, { stream: true });
+                    const parts = buffer.split("\n\n");
+                    buffer = parts.pop() || "";
 
-                parts.forEach(block => {
-                    block.split("\n").forEach(line => {
-                        let data = line.trim();
-                        if (!data) return;
-                        if (data.startsWith("data:")) data = data.slice(5).trim();
+                    parts.forEach(block => {
+                        block.split("\n").forEach(line => {
+                            let data = line.trim();
+                            if (!data) return;
+                            if (data.startsWith("data:")) data = data.slice(5).trim();
 
-                        if (data.startsWith("[CONVERSATION_ID:")) {
-                            newConversationId = data.match(/\[CONVERSATION_ID:(.+?)\]/)?.[1];
-                            return;
-                        }
+                            if (data.startsWith("[CONVERSATION_ID:")) {
+                                newConversationId = data.match(/\[CONVERSATION_ID:(.+?)\]/)?.[1];
+                                return;
+                            }
 
-                        if (data.startsWith("[CONVERSATION_NAME:")) {
-                            conversationName = data.match(/\[CONVERSATION_NAME:(.+?)\]/)?.[1];
-                            return;
-                        }
+                            if (data.startsWith("[CONVERSATION_NAME:")) {
+                                conversationName = data.match(/\[CONVERSATION_NAME:(.+?)\]/)?.[1];
+                                return;
+                            }
 
-                        if (data === "[ERROR_START]") {
-                            isError = true;
-                            return;
-                        }
+                            if (data === "[ERROR_START]") {
+                                isError = true;
+                                return;
+                            }
 
-                        if (data === "[ERROR_END]") return;
-                        if (isError) return;
+                            if (data === "[ERROR_END]") return;
+                            if (isError) return;
 
-                        // ───── STREAM FIX ─────
-                        const normalized = normalizeStreamChunk(data);
-                        accumulatedMarkdown += normalized;
+                            // ───── STREAM FIX ─────
+                            const normalized = normalizeStreamChunk(data);
+                            accumulatedMarkdown += normalized;
 
-                        if (needsParagraphBreak(accumulatedMarkdown.trim())) {
-                            accumulatedMarkdown += "\n\n";
-                        }
+                            if (needsParagraphBreak(accumulatedMarkdown.trim())) {
+                                accumulatedMarkdown += "\n\n";
+                            }
 
-                        accumulatedMarkdown = accumulatedMarkdown
-                            .replace(/###(?=\S)/g, "### ")
-                            .replace(/##(?=\S)/g, "## ")
-                            .replace(/#(?=\S)/g, "# ");
+                            accumulatedMarkdown = accumulatedMarkdown
+                                .replace(/###(?=\S)/g, "### ")
+                                .replace(/##(?=\S)/g, "## ")
+                                .replace(/#(?=\S)/g, "# ");
 
-                        if (!aiBubble) {
-                            aiBubble = document.createElement("div");
-                            aiBubble.className = "wa-bubble wa-them markdown-body";
-                            document.getElementById("waMessages").appendChild(aiBubble);
-                        }
+                            if (!aiBubble) {
+                                aiBubble = document.createElement("div");
+                                aiBubble.className = "wa-bubble wa-them markdown-body";
+                                document.getElementById("waMessages").appendChild(aiBubble);
+                            }
 
-                        aiBubble.innerHTML = renderMarkdown(accumulatedMarkdown);
-                        const box = document.getElementById("waMessages");
-                        box.scrollTop = box.scrollHeight;
+                            aiBubble.innerHTML = renderMarkdown(accumulatedMarkdown);
+                            const box = document.getElementById("waMessages");
+                            box.scrollTop = box.scrollHeight;
+                        });
                     });
-                });
 
-                read();
-            });
-        }
-        read();
-    })
-    .catch(() => {
-        input.disabled = false;
-        alert("AI stream failed");
-    });
+                    read();
+                });
+            }
+            read();
+        })
+        .catch(() => {
+            input.disabled = false;
+            alert("AI stream failed");
+        });
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -264,9 +263,8 @@ export async function loadMessages(conversationId, append = false) {
     const box = document.getElementById("waMessages");
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/conversation/ai/${conversationId}/messages?page=${messagePage}&size=${MESSAGE_PAGE_SIZE}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const res = await apiFetch(
+            `/api/conversation/ai/${conversationId}/messages?page=${messagePage}&size=${MESSAGE_PAGE_SIZE}`
         );
 
         const page = await res.json();
@@ -305,5 +303,5 @@ export async function loadMessages(conversationId, append = false) {
 /* ───────────────────────────────────────────────────────────── */
 
 export function playNotificationSound() {
-    new Audio("/sounds/notification.mp3").play().catch(() => {});
+    new Audio("/sounds/notification.mp3").play().catch(() => { });
 }
