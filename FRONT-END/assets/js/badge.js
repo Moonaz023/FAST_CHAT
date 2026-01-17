@@ -1,5 +1,5 @@
 // badge.js - Load once, then update locally
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
 const unreadCounts = {};
 let notificationCount = 0;
 let isInitialized = false;
@@ -7,12 +7,9 @@ let isInitialized = false;
 // ✅ Call this ONCE when app starts
 export async function initializeGlobalBadge() {
     if (isInitialized) return;
-    
+
     try {
-        const token = localStorage.getItem("authToken");
-        const res = await fetch(`${BACKEND_URL}/api/conversation/unread/total`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await apiFetch(`/api/conversation/unread/total`);
         if (res.ok) {
             notificationCount = await res.json();
             updateBadge();
@@ -26,7 +23,7 @@ export async function initializeGlobalBadge() {
 export function incrementUnread(conversationId) {
     unreadCounts[conversationId] = (unreadCounts[conversationId] || 0) + 1;
     updateConversationBadge(conversationId);
-    
+
     // ✅ Just increment locally - no server fetch!
     notificationCount++;
     updateBadge();
@@ -36,7 +33,7 @@ export function clearConversationUnread(conversationId) {
     const clearedCount = unreadCounts[conversationId] || 0;
     delete unreadCounts[conversationId];
     updateConversationBadge(conversationId);
-    
+
     // ✅ Just decrement locally - no server fetch!
     notificationCount = Math.max(0, notificationCount - clearedCount);
     updateBadge();

@@ -3,8 +3,8 @@ import { BACKEND_URL } from './config.js';
 
 // OAuth2 Authorization URLs (Spring Security standard)
 const PROVIDERS = {
-  google:   `${BACKEND_URL}/oauth2/authorization/google`,
-  github:   `${BACKEND_URL}/oauth2/authorization/github`,
+  google: `${BACKEND_URL}/oauth2/authorization/google`,
+  github: `${BACKEND_URL}/oauth2/authorization/github`,
   linkedin: `${BACKEND_URL}/oauth2/authorization/linkedin`
 };
 
@@ -91,12 +91,43 @@ function logout() {
   localStorage.removeItem("authToken");
   localStorage.removeItem("user");
   //showMsg("Logged out successfully", "success");
-  setTimeout(() => window.location.href = "index.html", 800);
+  setTimeout(() => window.location.href = "login.html", 800);
+}
+
+// Helper to parse JWT
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
 }
 
 // DOM Ready
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("authToken");
+
+  // Check if token is expired
+  if (token) {
+    const decoded = parseJwt(token);
+    if (decoded && decoded.exp) {
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp < currentTime) {
+        // Token expired
+        console.warn("Token expired. Logging out...");
+        alert("Session expired, please login again");
+        logout();
+        return; // Stop further execution
+      }
+    }
+  }
+
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
 
   const loginPages = ["index.html", "login.html", "register.html", ""]; // "" for root
@@ -111,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Redirect unauthenticated users from protected pages
   if (!token && currentPage === "home.html") {
     showMsg("Please log in to continue", "danger");
-    setTimeout(() => window.location.href = "index.html", 1500);
+    setTimeout(() => window.location.href = "login.html", 1500);
     return;
   }
 
@@ -143,8 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const githubBtn = document.getElementById("githubBtn");
   const linkedinBtn = document.getElementById("linkedinBtn");
 
-  if (googleBtn)   googleBtn.onclick   = () => loginWithProvider("google");
-  if (githubBtn)   githubBtn.onclick   = () => loginWithProvider("github");
+  if (googleBtn) googleBtn.onclick = () => loginWithProvider("google");
+  if (githubBtn) githubBtn.onclick = () => loginWithProvider("github");
   if (linkedinBtn) linkedinBtn.onclick = () => loginWithProvider("linkedin");
 
   // === Traditional Email/Password Login Form ===

@@ -1,6 +1,6 @@
 // conversations.js - FIXED imports
 import { clearConversationUnread, initializeGlobalBadge, seedUnreadCounts, unreadCounts } from './badge.js';
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
 let currentPage = 0;
 const PAGE_SIZE = 10;
 let hasMore = true;
@@ -15,13 +15,12 @@ export async function loadConversations(append = false) {
     }
     isLoading = true;
 
-    const token = localStorage.getItem("authToken");
+
     const list = document.getElementById("conversationList");
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/conversation/getConversionList?page=${currentPage}&size=${PAGE_SIZE}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const res = await apiFetch(
+            `/api/conversation/getConversionList?page=${currentPage}&size=${PAGE_SIZE}`
         );
         const data = await res.json();
         const convs = data.content || data;
@@ -53,8 +52,8 @@ export async function loadConversations(append = false) {
         isLoading = false;
     }
     if (window.onlineUsers) {
-    updateOnlineStatus(window.onlineUsers);
-}
+        updateOnlineStatus(window.onlineUsers);
+    }
 
 }
 

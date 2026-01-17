@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // If no user logged in, redirect to login
   if (!userRaw) {
     if (location.pathname.endsWith('profile.html')) {
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
     return;
   }
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     user = JSON.parse(userRaw);
   } catch (e) {
     console.error("Invalid user data in localStorage");
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
     return;
   }
 

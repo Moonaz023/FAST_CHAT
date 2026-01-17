@@ -1,5 +1,5 @@
 // chat.js - FIXED (removed refreshGlobalBadge call)
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
 import { reorderConversationToTop } from './conversations.js';
 import { stompClient } from './websocket.js';
 
@@ -20,16 +20,16 @@ export async function openConversation(name, id, targetUserId = null) {
     document.getElementById("waMessages").innerHTML = "";
     window.setSendFunction(sendMessage);
     if (id) {
-    await loadMessages(id);
-    reorderConversationToTop(id);
+        await loadMessages(id);
+        reorderConversationToTop(id);
 
-    // Just notify backend - the clearConversationUnread() already updated the badge
-    if (stompClient?.connected) {
-        stompClient.send("/app/chat.read", {}, JSON.stringify({ 
-            conversationId: id, 
-            messageId: null 
-        }));
-    }
+        // Just notify backend - the clearConversationUnread() already updated the badge
+        if (stompClient?.connected) {
+            stompClient.send("/app/chat.read", {}, JSON.stringify({
+                conversationId: id,
+                messageId: null
+            }));
+        }
     } else {
         // New chat — empty screen
         console.log("Opening a new chat — no conversation yet");
@@ -52,7 +52,7 @@ export async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    const token = localStorage.getItem("authToken"); // ✅ Define token
+
     const targetUserId = window.targetUserId || document.getElementById("chatContainer")?.dataset.targetUserId;
 
     // Step 1: ask backend to create conversation if missing
@@ -62,12 +62,11 @@ export async function sendMessage() {
         }
 
         try {
-            const res = await fetch(`${BACKEND_URL}/api/conversation/create`, {
+            const res = await apiFetch(`/api/conversation/create`, {
                 method: "POST",
                 body: JSON.stringify({ targetUserId }),
-                headers: { 
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
+                headers: {
+                    "Content-Type": "application/json"
                 }
             });
 
@@ -137,13 +136,12 @@ export async function loadMessages(conversationId, append = false) {
     }
 
     isLoadingMessages = true;
-    const token = localStorage.getItem("authToken");
+
     const box = document.getElementById("waMessages");
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/conversation/${conversationId}/messages?page=${messagePage}&size=${MESSAGE_PAGE_SIZE}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const res = await apiFetch(
+            `/api/conversation/${conversationId}/messages?page=${messagePage}&size=${MESSAGE_PAGE_SIZE}`
         );
         const page = await res.json();
         const messages = page.content || [];
@@ -196,5 +194,5 @@ export async function loadMessages(conversationId, append = false) {
 }
 
 export function playNotificationSound() {
-    new Audio("/sounds/notification.mp3").play().catch(() => {});
+    new Audio("/sounds/notification.mp3").play().catch(() => { });
 }
