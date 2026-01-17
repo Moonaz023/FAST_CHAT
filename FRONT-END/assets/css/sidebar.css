@@ -255,8 +255,23 @@
 
 /* Collapsed sidebar behavior */
 .sidebar.collapsed .sidebar-search-box input {
+  display: none;
+}
+
+.collapsed-search-icon {
+  display: none; /* hidden by default */
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: white;
   padding: 12px 0;
-  text-align: center;
+  cursor: pointer;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.sidebar.collapsed .collapsed-search-icon {
+  display: flex; /* Show only when collapsed */
 }
 
 .sidebar.collapsed .sidebar-user-results {

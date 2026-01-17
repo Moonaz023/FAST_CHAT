@@ -1,5 +1,6 @@
 // userSearch.js
-import { BACKEND_URL } from './config.js';
+import { apiFetch } from './api.js';
+
 let searchTimeout = null;
 
 export function initUserSearch() {
@@ -25,12 +26,11 @@ export function initUserSearch() {
 }
 
 async function searchUsers(query, resultsBox) {
-    const token = localStorage.getItem("authToken");
+
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/users/search?query=${encodeURIComponent(query)}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+        const res = await apiFetch(
+            `/api/users/search?query=${encodeURIComponent(query)}`
         );
 
         if (!res.ok) throw new Error("Failed to search");
@@ -78,16 +78,11 @@ async function searchUsers(query, resultsBox) {
 
 export async function openNewDirectChat(user) {
 
-    const token = localStorage.getItem("authToken");
+
     let conversationId = null;
 
     try {
-        const res = await fetch(
-            `${BACKEND_URL}/api/conversation/findOrNull/${user.id}`,
-            {
-                headers: { Authorization: `Bearer ${token}` }
-            }
-        );
+        const res = await apiFetch(`/api/conversation/findOrNull/${user.id}`);
 
         const data = await res.json();
         conversationId = data.conversationId;

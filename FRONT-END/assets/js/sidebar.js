@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!userRaw) {
     // not logged in
     // redirect to login if on protected page
-    if (location.pathname.endsWith('home.html')) window.location.href = 'index.html';
+    if (location.pathname.endsWith('home.html')) window.location.href = 'login.html';
     return;
   }
   const user = JSON.parse(userRaw);
@@ -26,6 +26,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (menuToggle) {
     menuToggle.addEventListener("click", () => {
       sidebar.classList.toggle('collapsed');
+    });
+  }
+
+  // Expand sidebar when search icon is clicked
+  const searchBtn = document.getElementById("collapsedSearchBtn");
+  if (searchBtn) {
+    searchBtn.addEventListener("click", () => {
+      sidebar.classList.remove("collapsed");
+      document.getElementById("userSearchInput")?.focus();
     });
   }
 });
