@@ -13,6 +13,7 @@ import java.util.Date;
 public class JwtUtil {
     private static final String SECRET_KEY = "YOUR_SUPER_SECRET_KEY_256BIT_CHANGE_ME_12345678901234567890123456789012";
     private static final long EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
+    //private static final long EXPIRATION_MS = 2 * 60 * 1000; // 2 minutes
 
     public String generateToken(String email) {
         var key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));

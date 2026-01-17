@@ -28,7 +28,7 @@ public class LinkedinOAuth2LoginSuccessHandler implements AuthenticationSuccessH
     private final ObjectMapper mapper = new ObjectMapper();
 
     // Allow your frontend origin (change in production!)
-    private static final String ALLOWED_ORIGIN = "http://192.168.0.105:3000";
+    private static final String ALLOWED_ORIGIN = "http://localhost:3000";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
